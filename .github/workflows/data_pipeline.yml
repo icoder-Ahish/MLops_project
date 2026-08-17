@@ -35,20 +35,33 @@ jobs:
     #   uses: actions/setup-python@v4
     #   with: 
     #     python-version: "3.12"
-
-    - name: install python packages
+    - name: setup Python venv and install packages
       run: |
-        python3 -m pip install --upgrade pip
-        pip3 install -r requirements.txt
+        python3 -m venv .venv
+        .venv/bin/python -m pip install --upgrade pip
+        .venv/bin/python -m pip install -r requirements.txt
 
-    - name: download ticker data and update yml file
-      run: python3 data_download.py --ticker $ticker --start $start --end $end
-      id: data
+    - name: download ticker data
+      run: .venv/bin/python data_download.py --ticker $ticker --start $start --end $end
       working-directory: jobs
 
     - name: edit yaml files
-      run: python3 update_yamls.py
+      run: .venv/bin/python update_yamls.py
       working-directory: jobs
+
+    # - name: install python packages
+    #   run: |
+    #     python3 -m pip install --upgrade pip
+    #     pip3 install -r requirements.txt
+
+    # - name: download ticker data and update yml file
+    #   run: python3 data_download.py --ticker $ticker --start $start --end $end
+    #   id: data
+    #   working-directory: jobs
+
+    # - name: edit yaml files
+    #   run: python3 update_yamls.py
+    #   working-directory: jobs
 
     - name: push files to github
       run: |
