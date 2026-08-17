@@ -24,7 +24,13 @@ def get_ticker_data(
     start = str(datetime.today().date()-timedelta(days=start))
     end = str(datetime.today().date()-timedelta(days=end))
 
-    tickerData=yf.download(ticker,start=start, end=end, period='1d')
+    # tickerData=yf.download(ticker,start=start, end=end, period='1d')
+    tickerData = yf.download(
+    ticker,
+    start=start,
+    end=end,
+    auto_adjust=True 
+    )
     tickerData['Date']=[str(x)[:10] for x in tickerData.index]
 
     if tickerData.shape[0]==0:
