@@ -1,0 +1,46 @@
+Metadata-Version: 2.1
+Name: azure-cli-core
+Version: 2.37.0
+Summary: Microsoft Azure Command-Line Tools Core Module
+Home-page: https://github.com/Azure/azure-cli
+Author: Microsoft Corporation
+Author-email: azpycli@microsoft.com
+License: MIT
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: License :: OSI Approved :: MIT License
+Requires-Python: >=3.6.0
+License-File: LICENSE.txt
+Requires-Dist: argcomplete (~=1.8)
+Requires-Dist: azure-cli-telemetry (==1.0.6.*)
+Requires-Dist: azure-mgmt-core (<2,>=1.2.0)
+Requires-Dist: cryptography
+Requires-Dist: humanfriendly (~=10.0)
+Requires-Dist: jmespath
+Requires-Dist: knack (~=0.9.0)
+Requires-Dist: msal-extensions (~=1.0.0)
+Requires-Dist: msal (==1.18.0b1)
+Requires-Dist: msrestazure (~=0.6.4)
+Requires-Dist: packaging (<22.0,>=20.9)
+Requires-Dist: paramiko (<3.0.0,>=2.0.8)
+Requires-Dist: pkginfo (>=1.5.0.1)
+Requires-Dist: PyJWT (>=2.1.0)
+Requires-Dist: pyopenssl (>=17.1.0)
+Requires-Dist: requests[socks]
+Requires-Dist: psutil (~=5.9) ; sys_platform != "cygwin"
+
+Microsoft Azure CLI Core Module
+==================================
+
+Release History
+===============
+
+See `Release History on GitHub <https://github.com/Azure/azure-cli/blob/dev/src/azure-cli-core/HISTORY.rst>`__.

@@ -1,0 +1,132 @@
+Metadata-Version: 2.1
+Name: azure-synapse-artifacts
+Version: 0.12.0
+Summary: Microsoft Azure Synapse Artifacts Client Library for Python
+Home-page: https://github.com/Azure/azure-sdk-for-python
+Author: Microsoft Corporation
+Author-email: azpysdkhelp@microsoft.com
+License: MIT License
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: License :: OSI Approved :: MIT License
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Requires-Dist: msrest (>=0.6.21)
+Requires-Dist: azure-common (~=1.1)
+Requires-Dist: azure-core (<2.0.0,>=1.20.1)
+
+# Microsoft Azure SDK for Python
+
+This is the Microsoft Azure Synapse Artifacts Client Library.
+This package has been tested with Python 3.6, 3.7, 3.8, 3.9 and 3.10.
+For a more complete view of Azure libraries, see the [azure sdk python release](https://aka.ms/azsdk/python/all).
+
+## _Disclaimer_
+
+_Azure SDK Python packages support for Python 2.7 has ended 01 January 2022. For more information and questions, please refer to https://github.com/Azure/azure-sdk-for-python/issues/20691_
+
+# Usage
+
+For code examples, see [Synapse Artifacts](https://docs.microsoft.com/python/api/overview/azure/) on docs.microsoft.com.
+
+# Provide Feedback
+
+If you encounter any bugs or have suggestions, please file an issue in the
+[Issues](https://github.com/Azure/azure-sdk-for-python/issues)
+section of the project.
+
+![Impressions](https://azure-sdk-impressions.azurewebsites.net/api/impressions/azure-sdk-for-python%2Fazure-synapse-artifacts%2FREADME.png)
+
+
+# Release History
+
+## 0.12.0 (2022-03-07)
+
+### Features Added
+
+- re-generated based on tag package-artifacts-composite-v3
+
+## 0.11.0 (2022-01-11)
+
+### Features Added
+
+- Added `MetastoreOperations`
+
+### Other Changes
+
+- Python 2.7 and 3.6 are no longer supported. Please use Python version 3.7 or later.
+
+## 0.10.0 (2021-11-09)
+
+### Other Changes
+
+- Internal bugfixes (re-generated with latest generator)
+
+## 0.9.0 (2021-10-05)
+
+### Features Added
+
+- re-generated based on tag package-artifacts-composite-v1
+
+## 0.8.0 (2021-08-10)
+
+- Updated API version to "2020-12-01" which is the default API version
+- Added `NotebookOperationResultOperations`, `OperationResultOperations`, `OperationStatusOperations`
+- Added API version "2021-06-01-preview" support
+
+## 0.7.0 (2021-05-11)
+
+### Bug fixes
+
+- Enable poller when starting a long running operation    #18184
+
+## 0.6.0 (2021-04-06)
+
+### New Features
+
+- Add ADF support
+
+## 0.5.0 (2021-03-09)
+
+### New Features
+
+- Add library operations
+- Change create_or_update_sql_script, delete_sql_script, rename_sql_script to long running operations
+
+### Breaking changes
+
+- Stop Python 3.5 support
+
+## 0.4.0 (2020-12-08)
+
+### New Features
+
+- Add Workspace git repo management operations
+- Add rename method for data flow, dataset, linked service, notebook, pipeline, spark job definition, sql script operations
+
+## 0.3.0 (2020-09-15)
+
+### New Features
+
+- Add Workspace operations
+- Add SqlPools operations
+- Add BigDataPools operations
+- Add IntegrationRuntimes operations
+
+### Breaking changes
+
+- Migrated most long running operation to polling mechanism (operation now starts with `begin`)
+
+## 0.2.0 (2020-07-01)
+
+* Initial Release
+
+
