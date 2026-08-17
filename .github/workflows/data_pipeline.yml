@@ -42,11 +42,15 @@ jobs:
         .venv/bin/python -m pip install -r requirements.txt
 
     - name: download ticker data
-      run: .venv/bin/python data_download.py --ticker $ticker --start $start --end $end
+      run: |
+        $GITHUB_WORKSPACE/.venv/bin/python data_download.py \
+          --ticker $ticker \
+          --start $start \
+          --end $end
       working-directory: jobs
 
     - name: edit yaml files
-      run: .venv/bin/python update_yamls.py
+      run: $GITHUB_WORKSPACE/.venv/bin/python update_yamls.py
       working-directory: jobs
 
     # - name: install python packages
