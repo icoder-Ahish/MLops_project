@@ -18,11 +18,12 @@ on:
   #   - jobs/data_download.py
   #   - jobs/data_upload.yml
   #   - cli/setup.sh
-
+permissions:
+  contents: write
 
 jobs:
   datawork:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
     - name: checkout repository
       uses: actions/checkout@v2
@@ -50,7 +51,8 @@ jobs:
         git config --local user.name "GitHub Action"
         git add -A
         git commit -m "Ticker data for $ticker downloaded and YAML file updated." || exit 0
-        git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD
+        git push origin HEAD:${GITHUB_REF_NAME}
+      # Old  git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: azure login
