@@ -18,12 +18,13 @@ on:
   #   - jobs/data_download.py
   #   - jobs/data_upload.yml
   #   - cli/setup.sh
-permissions:
-  contents: write
 
 jobs:
   datawork:
     runs-on: self-hosted
+    permissions:
+      contents: write
+
     steps:
     - name: checkout repository
       uses: actions/checkout@v2
@@ -53,20 +54,6 @@ jobs:
       run: $GITHUB_WORKSPACE/.venv/bin/python update_yamls.py
       working-directory: jobs
 
-    # - name: install python packages
-    #   run: |
-    #     python3 -m pip install --upgrade pip
-    #     pip3 install -r requirements.txt
-
-    # - name: download ticker data and update yml file
-    #   run: python3 data_download.py --ticker $ticker --start $start --end $end
-    #   id: data
-    #   working-directory: jobs
-
-    # - name: edit yaml files
-    #   run: python3 update_yamls.py
-    #   working-directory: jobs
-
     - name: push files to github
       run: |
         git config --local user.email "action@github.com"
@@ -75,6 +62,7 @@ jobs:
         git commit -m "Ticker data for $ticker downloaded and YAML file updated." || exit 0
         git push origin HEAD:${GITHUB_REF_NAME}
       # Old  git push https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git HEAD
+      
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: azure login
