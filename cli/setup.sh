@@ -1,6 +1,6 @@
-GROUP="RG"
-LOCATION="eastus"
-WORKSPACE="AzureMLWorkspace"
+GROUP="ashishsahu8135-rg"
+LOCATION="southindia"
+WORKSPACE="Mlopsfirst"
 
 az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
 
