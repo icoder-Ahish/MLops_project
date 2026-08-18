@@ -1,5 +1,4 @@
 $schema: https://azuremlschemas.azureedge.net/latest/data.schema.json
-            
 type: uri_file
 name: 'WIPRO'
 description: Stock data for WIPRO.NS during 2025-08-18:2026-08-14 in 1d interval.

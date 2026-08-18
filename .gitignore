@@ -3,3 +3,4 @@ config/storage_config.json
 .logs.log
 .venv
 env
+mlops-project.tar

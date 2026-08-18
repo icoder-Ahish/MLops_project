@@ -2,8 +2,9 @@ name: data upload to azure
 
 env:
   ticker: WIPRO.NS
-  start: 366
-  end: 1
+  # From 18 Aug 2025 through 18 Aug 2026 when the workflow runs on 18 Aug 2026.
+  start: 365
+  end: 0
 
 on:
   # schedule:
@@ -65,13 +66,16 @@ jobs:
       
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: azure login
       uses: azure/login@v1
       with:
         creds: ${{secrets.AZURE_CREDENTIALS}}
+
     - name: setup
       run: bash setup.sh
       working-directory: cli
       continue-on-error: true
+
     - name: upload to azure
       run: az ml data create -f jobs/data_upload.yml
