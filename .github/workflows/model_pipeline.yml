@@ -1,4 +1,4 @@
-name: training and registering model
+name: Train and register model
 
 env:
   job_name: ga-run-500
@@ -7,42 +7,51 @@ env:
 
 on:
   # schedule:
-  # - cron: "1 2 * * 1"
-
-  # push:
-    # branches: [training-automation, main]
-  # pull-request:
-  #   branches: [ main ]
-  #   paths:
-  #   - .github/workflows/model_pipeline.yml
-  #   - jobs/train.py
-  #   - jobs/train.yml
-
+  #   - cron: "1 2 * * 1"
+  push:
+    branches: [training-automation, main]
+    paths:
+      - .github/workflows/model_pipeline.yml
+      - cli/setup.sh
+      - jobs/train.py
+      - jobs/train.yml
+      - config/training_env.yml
+  workflow_dispatch:
 
 jobs:
   train-job:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    outputs:
+      job_name: ${{ steps.submit-training.outputs.job_name }}
     steps:
-    - name: check out repo
-      uses: actions/checkout@v2
-    - name: azure login
-      uses: azure/login@v1
-      with:
-        creds: ${{secrets.AZURE_CREDENTIALS}}
-    - name: setup
-      run: bash setup.sh
-      working-directory: cli
-      continue-on-error: true
-    - name: create-compute
-      run: az ml compute create --name $compute_name --size STANDARD_DS11_v2 --min-instances 1 --max-instances 2 --type AmlCompute
-    - name: train-job
-      working-directory: jobs
-      run: az ml job create --file train.yml --debug --stream # --stream causes the step to go on, as long as the model trains.
-# If training is expected to take a long time, registration can be scheduled in a separate cron job, triggered later.
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }}
+          repository: icoder-Ahish/MLops_project
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Configure Azure Machine Learning
+        run: bash setup.sh
+        working-directory: cli
+      - name: Create compute if needed
+        run: |
+          az ml compute show --name "$compute_name" >/dev/null 2>&1 || \
+            az ml compute create --name "$compute_name" --size STANDARD_DS11_v2 --min-instances 1 --max-instances 2 --type AmlCompute
+      - name: Submit and wait for training job
+        id: submit-training
+        working-directory: jobs
+        run: |
+          job_name="$(az ml job create --file train.yml --stream --query name --output tsv)"
+          echo "job_name=$job_name" >> "$GITHUB_OUTPUT"
+
   register-job:
     needs: [train-job]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
+<<<<<<< HEAD
     - name: check out repo
       uses: actions/checkout@v2
     - name: azure login
@@ -59,20 +68,44 @@ jobs:
         --version 500
         --path azureml://jobs/ga-run-500/outputs/artifacts/paths/outputs/
         --type custom_model
+=======
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }}
+          repository: icoder-Ahish/MLops_project
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Configure Azure Machine Learning
+        run: bash setup.sh
+        working-directory: cli
+      - name: Register model
+        run: |
+          az ml model create \
+            --name "$registered_model_name" \
+            --version 100 \
+            --path "azureml://jobs/${{ needs.train-job.outputs.job_name }}/outputs/artifacts/paths/outputs/" \
+            --type custom_model
+>>>>>>> 9e06f39c (model training)
 
   delete-compute:
     needs: [train-job]
-    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    runs-on: self-hosted
     steps:
-    - name: check out repo
-      uses: actions/checkout@v2
-    - name: azure login
-      uses: azure/login@v1
-      with:
-        creds: ${{secrets.AZURE_CREDENTIALS}}
-    - name: setup
-      run: bash setup.sh
-      working-directory: cli
-      continue-on-error: true
-    - name: delete-step
-      run: az ml compute delete --name $compute_name --yes || exit 0
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }}
+          repository: icoder-Ahish/MLops_project
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Configure Azure Machine Learning
+        run: bash setup.sh
+        working-directory: cli
+      - name: Delete compute
+        run: az ml compute delete --name "$compute_name" --yes || true
