@@ -51,7 +51,6 @@ jobs:
     needs: [train-job]
     runs-on: self-hosted
     steps:
-<<<<<<< HEAD
     - name: check out repo
       uses: actions/checkout@v2
     - name: azure login
@@ -68,27 +67,6 @@ jobs:
         --version 700
         --path azureml://jobs/ga-run-700/outputs/artifacts/paths/outputs/
         --type custom_model
-=======
-      - name: Check out repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PAT }}
-          repository: icoder-Ahish/MLops_project
-      - name: Azure login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - name: Configure Azure Machine Learning
-        run: bash setup.sh
-        working-directory: cli
-      - name: Register model
-        run: |
-          az ml model create \
-            --name "$registered_model_name" \
-            --version 100 \
-            --path "azureml://jobs/${{ needs.train-job.outputs.job_name }}/outputs/artifacts/paths/outputs/" \
-            --type custom_model
->>>>>>> 9e06f39c (model training)
 
   delete-compute:
     needs: [train-job]
