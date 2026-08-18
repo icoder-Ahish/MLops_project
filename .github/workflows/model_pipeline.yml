@@ -1,13 +1,12 @@
 name: Train and register model
 
 env:
-  job_name: ga-run-900
+  job_name: ga-run-7
   compute_name: computer456
+  compute_size: STANDARD_B2S
   registered_model_name: GA_model
 
 on:
-  # schedule:
-  #   - cron: "1 2 * * 1"
   push:
     branches: [training-automation, main]
     paths:
@@ -29,17 +28,26 @@ jobs:
         with:
           token: ${{ secrets.PAT }}
           repository: icoder-Ahish/MLops_project
+
       - name: Azure login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       - name: Configure Azure Machine Learning
         run: bash setup.sh
         working-directory: cli
+
       - name: Create compute if needed
         run: |
           az ml compute show --name "$compute_name" >/dev/null 2>&1 || \
-            az ml compute create --name "$compute_name" --size STANDARD_DS11_v2 --min-instances 1 --max-instances 2 --type AmlCompute
+            az ml compute create \
+              --name "$compute_name" \
+              --size "$compute_size" \
+              --min-instances 1 \
+              --max-instances 2 \
+              --type AmlCompute
+
       - name: Submit and wait for training job
         id: submit-training
         working-directory: jobs
@@ -48,28 +56,34 @@ jobs:
           echo "job_name=$job_name" >> "$GITHUB_OUTPUT"
 
   register-job:
-    needs: [train-job]
+    needs: train-job
     runs-on: self-hosted
     steps:
-    - name: check out repo
-      uses: actions/checkout@v2
-    - name: azure login
-      uses: azure/login@v1
-      with:
-        creds: ${{secrets.AZURE_CREDENTIALS}}
-    - name: setup
-      run: bash setup.sh
-      working-directory: cli
-      continue-on-error: true
-    - name: register-model
-      run: az ml model create
-        --name $registered_model_name 
-        --version 900
-        --path azureml://jobs/ga-run-900/outputs/artifacts/paths/outputs/
-        --type custom_model
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }}
+          repository: icoder-Ahish/MLops_project
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Configure Azure Machine Learning
+        run: bash setup.sh
+        working-directory: cli
+
+      - name: Register model
+        run: |
+          az ml model create \
+            --name "$registered_model_name" \
+            --version 7 \
+            --path "azureml://jobs/${{ needs.train-job.outputs.job_name }}/outputs/artifacts/paths/outputs/" \
+            --type custom_model
 
   delete-compute:
-    needs: [train-job]
+    needs: train-job
     if: ${{ always() }}
     runs-on: self-hosted
     steps:
@@ -78,12 +92,15 @@ jobs:
         with:
           token: ${{ secrets.PAT }}
           repository: icoder-Ahish/MLops_project
+
       - name: Azure login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       - name: Configure Azure Machine Learning
         run: bash setup.sh
         working-directory: cli
+
       - name: Delete compute
         run: az ml compute delete --name "$compute_name" --yes || true
