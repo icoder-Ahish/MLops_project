@@ -3,7 +3,7 @@ name: Train and register model
 env:
   job_name: ga-run-7
   compute_name: computer456
-  compute_size: STANDARD_B2S
+  compute_size: STANDARD_DS2_V2
   registered_model_name: GA_model
 
 on:
