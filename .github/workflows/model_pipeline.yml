@@ -3,7 +3,7 @@ name: Train and register model
 env:
   job_name: ga-run-7
   compute_name: computer456
-  compute_size: STANDARD_DS2_V2
+  compute_size: STANDARD_D1_V2
   registered_model_name: GA_model
 
 on:
@@ -44,7 +44,7 @@ jobs:
             az ml compute create \
               --name "$compute_name" \
               --size "$compute_size" \
-              --min-instances 1 \
+              --min-instances 0 \
               --max-instances 2 \
               --type AmlCompute
 
