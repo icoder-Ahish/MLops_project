@@ -1,7 +1,7 @@
 name: Train and register model
 
 env:
-  job_name: ga-run-500
+  job_name: ga-run-600
   compute_name: computer456
   registered_model_name: GA_model
 
@@ -65,8 +65,8 @@ jobs:
     - name: register-model
       run: az ml model create
         --name $registered_model_name 
-        --version 500
-        --path azureml://jobs/ga-run-500/outputs/artifacts/paths/outputs/
+        --version 600
+        --path azureml://jobs/ga-run-600/outputs/artifacts/paths/outputs/
         --type custom_model
 =======
       - name: Check out repository
