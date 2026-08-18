@@ -10,9 +10,7 @@ inputs:
   data:
     type: uri_file
     path: azureml:WIPRO@latest # There shouldn't be space after 'azureml:'
-environment:
-  image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
-  conda_file: ../config/training_env.yml
+environment: azureml:stock-pricing:4
 compute: azureml:computer456
 display_name: stock
 experiment_name: ga_train_job
