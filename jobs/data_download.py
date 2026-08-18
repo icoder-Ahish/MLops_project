@@ -62,14 +62,16 @@ def save_to_data_upload(data_path: Path, ticker: str, tags: dict[str, str | int 
     """Write a valid Azure ML data asset definition relative to the repository."""
     name = ticker.split(".", maxsplit=1)[0]
     version = re.sub("-", "", str(date.today()))
-    relative_path = data_path.relative_to(PROJECT_ROOT).as_posix()
+    # `jobs/data_upload.yml` lives in `jobs/`, so the asset path needs to go
+    # up one level to reach the repository-root `data/` directory.
+    relative_path = Path("..") / data_path.relative_to(PROJECT_ROOT)
     description = f"Stock data for {ticker} during {tags['Start']}:{tags['End']} in 1d interval."
     DATA_UPLOAD_YAML.write_text(
         f"$schema: https://azuremlschemas.azureedge.net/latest/data.schema.json\n"
         f"type: uri_file\n"
         f"name: '{name}'\n"
         f"description: '{description}'\n"
-        f"path: '{relative_path}'\n"
+        f"path: '{relative_path.as_posix()}'\n"
         "tags:\n"
         f"  Length: {tags['Length']}\n"
         f"  Start: '{tags['Start']}'\n"
