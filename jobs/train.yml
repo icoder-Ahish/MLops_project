@@ -1,5 +1,5 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
-name: ga-run-300
+name: ga-run-400
 tags:
     modeltype: pytorch
 code: ../jobs
