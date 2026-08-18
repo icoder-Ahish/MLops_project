@@ -1,11 +1,12 @@
 $schema: https://azuremlschemas.azureedge.net/latest/data.schema.json
 type: uri_file
 name: 'WIPRO'
-description: Stock data for WIPRO.NS during 2025-08-18:2026-08-14 in 1d interval.
-path: '../data/WIPRO.NS.csv'
-tags: {'Length': 249, 'Start': '2025-08-18', 'End': '2026-08-14', 'Median': Ticker
-WIPRO.NS    211.67
-dtype: float64, 'SD': Ticker
-WIPRO.NS    27.6
-dtype: float64}
-version: 20260817
+description: 'Stock data for WIPRO.NS during 2025-08-18:2026-08-18 in 1d interval.'
+path: 'data/WIPRO.NS.csv'
+tags:
+  Length: 251
+  Start: '2025-08-18'
+  End: '2026-08-18'
+  Median: 210.85
+  SD: 27.66
+version: '20260818'
