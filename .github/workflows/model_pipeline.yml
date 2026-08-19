@@ -48,8 +48,14 @@ jobs:
         id: submit-training
         working-directory: jobs
         run: |
+          # Build a unique Azure ML job name from GitHub run metadata.
+          # This prevents the "job already exists" and "not supported in this API version" errors
+          # that occur when a stale job with the same static name exists in the workspace.
+          AML_JOB_NAME="ga-run-${{ github.run_id }}-${{ github.run_attempt }}"
+
           job_name="$(az ml job create \
             --file train.yml \
+            --name "$AML_JOB_NAME" \
             --stream \
             --query name \
             --output tsv)"

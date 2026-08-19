@@ -1,5 +1,5 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
-name: ga-run-900
+# name is intentionally omitted here; it is injected dynamically via --name in the GitHub Actions workflow
 tags:
     modeltype: pytorch
 code: ../jobs
