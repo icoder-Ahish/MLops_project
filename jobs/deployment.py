@@ -54,14 +54,18 @@ def init():
             X,_=batch
             return self(X.type(torch.float32))
 
-    scalerpath = os.path.join(
-    os.getenv("AZUREML_MODEL_DIR"), "outputs/scaler.pkl")
-    # deserialize the model file back into a sklearn model
+    model_dir = os.getenv("AZUREML_MODEL_DIR", ".")
+    
+    scalerpath = os.path.join(model_dir, "outputs/scaler.pkl")
+    if not os.path.exists(scalerpath):
+        scalerpath = os.path.join(model_dir, "scaler.pkl")
     with open(scalerpath, 'rb') as f:
         scaler = pickle.load(f)
 
-    modelpath = os.path.join(
-    os.getenv("AZUREML_MODEL_DIR"), "outputs/model.pth")    
+    modelpath = os.path.join(model_dir, "outputs/model.pth")
+    if not os.path.exists(modelpath):
+        modelpath = os.path.join(model_dir, "model.pth")
+    
     mod = model()
     mod.load_state_dict(torch.load(modelpath))
     mod.eval()
@@ -69,13 +73,23 @@ def init():
     datamod = dataset(scaler)
 
 def run(raw_data):
+    try:
+        data_json = json.loads(raw_data)
+        if isinstance(data_json, dict) and "data" in data_json:
+            values = data_json["data"]
+        elif isinstance(data_json, dict):
+            values = list(data_json.values())
+        elif isinstance(data_json, list):
+            values = data_json
+        else:
+            values = data_json
 
-    data = json.loads(raw_data)
-    data = np.array(list(data.values())).astype(float)
-    pred_data=datamod.predict_dataloader(data=pd.DataFrame(data, columns=['Close']))
+        values = np.array(values).astype(float)
+        pred_data = datamod.predict_dataloader(data=pd.DataFrame(values, columns=['Close']))
 
-    result, _ = mod(pred_data)
-    
-    result = scaler.inverse_transform(result.detach().numpy())
+        result, _ = mod(pred_data)
+        result = scaler.inverse_transform(result.detach().numpy())
 
-    return result.tolist()
+        return {"forecast": result.tolist()}
+    except Exception as e:
+        return {"error": str(e)}
