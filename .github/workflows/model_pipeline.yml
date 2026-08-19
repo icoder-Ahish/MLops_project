@@ -3,7 +3,7 @@ name: Train and register model
 env:
   job_name: ga-run-7
   compute_name: computer456
-  compute_size: STANDARD_B2S
+  compute_size: STANDARD_D2d_v5        
   registered_model_name: GA_model
 
 on:
@@ -15,6 +15,8 @@ on:
 jobs:
   train-job:
     runs-on: self-hosted
+    outputs:
+      job_name: ${{ steps.submit-training.outputs.job_name }}
 
     steps:
       - name: Check out repository
@@ -34,11 +36,11 @@ jobs:
 
       - name: Create compute if needed
         run: |
-          az ml compute show --name "$compute_name" >/dev/null 2>&1 || \
+          az ml compute show --name "${{ env.compute_name }}" >/dev/null 2>&1 || \
             az ml compute create \
-              --name "$compute_name" \
-              --size "$compute_size" \
-              --min-instances 1 \
+              --name "${{ env.compute_name }}" \
+              --size "${{ env.compute_size }}" \
+              --min-instances 0 \
               --max-instances 2 \
               --type AmlCompute
 
@@ -77,7 +79,7 @@ jobs:
       - name: Register model
         run: |
           az ml model create \
-            --name "$registered_model_name" \
+            --name "${{ env.registered_model_name }}" \
             --version 7 \
             --path "azureml://jobs/${{ needs.train-job.outputs.job_name }}/outputs/artifacts/paths/outputs/" \
             --type custom_model
@@ -104,4 +106,4 @@ jobs:
         working-directory: cli
 
       - name: Delete compute
-        run: az ml compute delete --name "$compute_name" --yes || true
+        run: az ml compute delete --name "${{ env.compute_name }}" --yes || true
