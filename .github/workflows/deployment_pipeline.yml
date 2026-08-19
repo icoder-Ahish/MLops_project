@@ -38,4 +38,5 @@ jobs:
         working-directory: jobs
         run: |
           az ml online-deployment create -f deploy.yml --all-traffic || \
-            az ml online-deployment update -f deploy.yml --all-traffic
+            az ml online-deployment update -f deploy.yml
+          az ml online-endpoint update --name ga-deployment --traffic green=100 || true
