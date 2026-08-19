@@ -132,6 +132,7 @@ def main():
 
     trainedModel, scalerObj = train(args)
 
+    os.makedirs('./outputs', exist_ok=True)
     pickle.dump(scalerObj, open('./outputs/scaler.pkl','wb'))
     model_file = f"./outputs/model.pth"
     torch.save(trainedModel.state_dict(), model_file)

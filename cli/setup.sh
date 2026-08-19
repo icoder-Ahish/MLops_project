@@ -4,5 +4,4 @@ WORKSPACE="mlops-first"
 
 az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
 
-az extension remove -n ml
-az extension add -n ml
+az extension add -n ml --upgrade || true
