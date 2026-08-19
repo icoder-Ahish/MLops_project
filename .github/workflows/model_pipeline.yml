@@ -49,16 +49,25 @@ jobs:
         working-directory: jobs
         run: |
           # Build a unique Azure ML job name from GitHub run metadata.
-          # This prevents the "job already exists" and "not supported in this API version" errors
-          # that occur when a stale job with the same static name exists in the workspace.
+          # This prevents "job already exists" and "not supported in this API version" errors.
           AML_JOB_NAME="ga-run-${{ github.run_id }}-${{ github.run_attempt }}"
+
+          # IMPORTANT: Do NOT use --stream together with --query/--output tsv in the same command.
+          # --stream dumps log lines (e.g. "Streaming user_logs/std_log.txt") to stdout,
+          # which pollutes the captured variable and causes:
+          #   "Error: Invalid format 'Streaming user_logs/std_log.txt'"
+          # Fix: create the job first (capturing only the name), then stream logs separately.
 
           job_name="$(az ml job create \
             --file train.yml \
             --name "$AML_JOB_NAME" \
-            --stream \
             --query name \
             --output tsv)"
+
+          echo "Submitted Azure ML job: $job_name"
+
+          # Stream job logs to GitHub Actions console (does not affect captured variables)
+          az ml job stream --name "$job_name"
 
           echo "job_name=$job_name" >> "$GITHUB_OUTPUT"
 
