@@ -3,25 +3,19 @@ name: Train and register model
 env:
   job_name: ga-run-7
   compute_name: computer456
-  compute_size: STANDARD_D2S_V3
+  compute_size: STANDARD_B2S
   registered_model_name: GA_model
 
 on:
   push:
     branches: [training-automation, main]
     paths:
-      - .github/workflows/model_pipeline.yml
-      - cli/setup.sh
-      - jobs/train.py
-      - jobs/train.yml
-      - config/training_env.yml
-  workflow_dispatch:
+      - '**'
 
 jobs:
   train-job:
     runs-on: self-hosted
-    outputs:
-      job_name: ${{ steps.submit-training.outputs.job_name }}
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -44,7 +38,7 @@ jobs:
             az ml compute create \
               --name "$compute_name" \
               --size "$compute_size" \
-              --min-instances 0 \
+              --min-instances 1 \
               --max-instances 2 \
               --type AmlCompute
 
@@ -52,12 +46,18 @@ jobs:
         id: submit-training
         working-directory: jobs
         run: |
-          job_name="$(az ml job create --file train.yml --stream --query name --output tsv)"
+          job_name="$(az ml job create \
+            --file train.yml \
+            --stream \
+            --query name \
+            --output tsv)"
+
           echo "job_name=$job_name" >> "$GITHUB_OUTPUT"
 
   register-job:
     needs: train-job
     runs-on: self-hosted
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -86,6 +86,7 @@ jobs:
     needs: train-job
     if: ${{ always() }}
     runs-on: self-hosted
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
