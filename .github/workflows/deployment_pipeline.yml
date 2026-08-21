@@ -2,12 +2,12 @@ name: model deployment
 
 on:
   workflow_dispatch:
-  push:
-    branches: [deploy-automation, main]
-    paths:
-      - '.github/workflows/deployment_pipeline.yml'
-      - 'jobs/deploy.yml'
-      - 'jobs/deployment.py'
+  # push:
+  #   branches: [deploy-automation, main]
+  #   paths:
+  #     - '.github/workflows/deployment_pipeline.yml'
+  #     - 'jobs/deploy.yml'
+  #     - 'jobs/deployment.py'
 
 jobs:
   deployment-job:

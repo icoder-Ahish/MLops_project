@@ -1,6 +1,6 @@
-GROUP="ashishsahu8135-rg"
-LOCATION="southindia"
-WORKSPACE="mlops-first"
+GROUP="ashis-mlop"
+LOCATION="centralindia"
+WORKSPACE="mlopssecond"
 
 az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
 
