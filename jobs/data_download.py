@@ -1,6 +1,6 @@
 """Download recent Yahoo Finance data and prepare its Azure ML data asset YAML."""
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 import argparse
 import logging
 from pathlib import Path
@@ -61,7 +61,7 @@ def get_dataset_tags(data: pd.Series) -> dict[str, str | int | float]:
 def save_to_data_upload(data_path: Path, ticker: str, tags: dict[str, str | int | float]) -> None:
     """Write a valid Azure ML data asset definition relative to the repository."""
     name = ticker.split(".", maxsplit=1)[0]
-    version = re.sub("-", "", str(date.today()))
+    version = datetime.now().strftime("%Y%m%d%H%M%S")
     # `jobs/data_upload.yml` lives in `jobs/`, so the asset path needs to go
     # up one level to reach the repository-root `data/` directory.
     relative_path = Path("..") / data_path.relative_to(PROJECT_ROOT)

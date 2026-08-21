@@ -13,6 +13,7 @@ This document captures all technical challenges, root causes, and solutions impl
 6. [Missing Output Directory in Training Script (`train.py`)](#6-missing-output-directory-in-training-script-trainpy)
 7. [CLI Flag Error (`--all-traffic` on `deployment update`)](#7-cli-flag-error---all-traffic-on-deployment-update)
 8. [Scoring Script Model Artifact Path & Input Payload Flexibility (`deployment.py`)](#8-scoring-script-model-artifact-path--input-payload-flexibility-deploymentpy)
+9. [Data Asset Version Collision in `data_pipeline.yml`](#9-data-asset-version-collision-in-data_pipelineyml)
 
 ---
 
@@ -208,3 +209,28 @@ Updated `jobs/deployment.py`:
        except Exception as e:
            return {"error": str(e)}
    ```
+
+---
+
+## 9. Data Asset Version Collision in `data_pipeline.yml`
+
+### Symptom / Error
+```text
+ERROR: (UserError) A data version with this name and version already exists. If you are trying to create a new data version, use a different name or version. If you are trying to update an existing data version, the existing asset's data uri cannot be changed. Only tags, description, and isArchived can be updated.
+Code: UserError
+Message: A data version with this name and version already exists. If you are trying to create a new data version, use a different name or version.
+```
+
+### Root Cause
+`jobs/data_download.py` generated data asset version strings using only `date.today()` (e.g. `'20260821'`). When `.github/workflows/data_pipeline.yml` executed multiple times on the same date (or when re-running after prior uploads), `az ml data create -f jobs/data_upload.yml` attempted to register an already existing version string, which Azure Machine Learning prohibits for data assets.
+
+### Solution / Overcome
+Updated `save_to_data_upload` in `jobs/data_download.py` to produce granular timestamp-based version numbers using `datetime.now().strftime("%Y%m%d%H%M%S")`:
+```python
+from datetime import datetime, date
+
+# Generate timestamp-based version string (e.g. 20260821074500)
+version = datetime.now().strftime("%Y%m%d%H%M%S")
+```
+This guarantees unique dataset version identifiers across multiple pipeline runs on the same day, preventing version collisions during `az ml data create`.
+
