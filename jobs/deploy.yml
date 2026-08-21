@@ -1,22 +1,10 @@
 $schema: https://azuremlschemas.azureedge.net/latest/managedOnlineDeployment.schema.json
 name: green
 endpoint_name: ga-deployment
-model: azureml:GA_model@latest
+model: azureml:GA_model:20
 code_configuration:
   code: ../jobs
   scoring_script: deployment.py
-environment: azureml:stock-deploy-env@latest
-instance_type: Standard_D2a_v4
+environment: azureml:stock-pricing:5
+instance_type: Standard_DS1_v2
 instance_count: 1
-liveness_probe:
-  initial_delay: 600   # Wait 10 minutes before first health check (model load is slow)
-  period: 30
-  timeout: 10
-  success_threshold: 1
-  failure_threshold: 30
-readiness_probe:
-  initial_delay: 30
-  period: 10
-  timeout: 10
-  success_threshold: 1
-  failure_threshold: 30

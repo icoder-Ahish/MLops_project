@@ -1,105 +1,39 @@
 name: model deployment
-
 on:
-  workflow_dispatch:
-  push:
-    branches: [deploy-automation, main]
-    paths:
-      - '.github/workflows/deployment_pipeline.yml'
-      - 'jobs/deploy.yml'
-      - 'jobs/deployment.py'
+  # schedule:
+  #   - cron: "1 3 * * 1"
+
+  # push:
+  #   branches: [deploy-automation, main]
+  # pull_request:
+  #   branches: [ main ]
+  #   paths:
+  #   - .github/workflows/data_pipeline.yml
+  #   - jobs/data_download.py
+  #   - jobs/data_upload.yml
+  #   - cli/setup.sh
+
 jobs:
+  # compare-job:
+  #  Compare if the model is good enough
+  #  Profile the model
+  #  If it is good enough, proceed to next step 
   deployment-job:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PAT }}
-          repository: 'icoder-Ahish/MLops_project'
-
-      - name: Azure login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Configure Azure Machine Learning
-        run: bash setup.sh
-        working-directory: cli
-        continue-on-error: true
-
-      - name: Create online endpoint if needed
-        run: |
-          az ml online-endpoint show --name ga-deployment >/dev/null 2>&1 || \
-            az ml online-endpoint create --name ga-deployment
-
-      - name: Register deployment environment (build & cache image)
-        id: envsetup
-        run: |
-          # Derive a stable version from the file content hash.
-          # Same conda file = same hash = image already in ACR = no rebuild.
-          ENV_VERSION=$(sha256sum config/deployment_env.yml | cut -c1-12)
-          echo "env_version=$ENV_VERSION" >> "$GITHUB_OUTPUT"
-          echo "Using environment version: $ENV_VERSION"
-
-          if az ml environment show --name stock-deploy-env --version "$ENV_VERSION" >/dev/null 2>&1; then
-            echo "Environment stock-deploy-env:$ENV_VERSION already exists — skipping build."
-          else
-            echo "Creating new environment version $ENV_VERSION (image build will start)..."
-            az ml environment create \
-              --name stock-deploy-env \
-              --image mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest \
-              --conda-file config/deployment_env.yml \
-              --version "$ENV_VERSION"
-
-            # Poll until the ACR image build finishes (max 40 min).
-            # az ml environment create is async — it registers metadata and
-            # triggers the build in the background then returns immediately.
-            echo "Polling for image build completion (max 40 min)..."
-            for attempt in $(seq 1 80); do
-              echo "  Attempt $attempt/80 — $(date -u '+%H:%M:%S UTC')"
-              BUILD_OUT=$(az ml environment show \
-                --name stock-deploy-env \
-                --version "$ENV_VERSION" \
-                --output json 2>/dev/null || echo "{}")
-
-              # Azure ML sets image to the full ACR URI (contains .azurecr.io)
-              # once the image has been successfully pushed to the registry.
-              if echo "$BUILD_OUT" | grep -q "azurecr.io"; then
-                echo "  Image build succeeded!"
-                break
-              fi
-
-              if [ "$attempt" -eq 80 ]; then
-                echo "  Timed out waiting for image build."
-                exit 1
-              fi
-              sleep 30
-            done
-          fi
-
-          # Write the resolved version into deploy.yml so it uses the exact
-          # pre-built version rather than @latest which could resolve to a
-          # version whose image is still building.
-          sed -i "s|environment: azureml:stock-deploy-env@latest|environment: azureml:stock-deploy-env:$ENV_VERSION|g" jobs/deploy.yml
-          echo "deploy.yml updated to use environment stock-deploy-env:$ENV_VERSION"
-
-      - name: Deploy model to endpoint
-        working-directory: jobs
-        run: |
-          if az ml online-deployment show --name green --endpoint-name ga-deployment >/dev/null 2>&1; then
-            echo "Deployment 'green' already exists — updating..."
-            az ml online-deployment update -f deploy.yml
-          else
-            echo "Deployment 'green' does not exist — creating..."
-            az ml online-deployment create -f deploy.yml --all-traffic
-          fi
-          az ml online-endpoint update --name ga-deployment --traffic green=100 || true
-
-      - name: Fetch deployment logs (for debugging)
-        if: always()
-        run: |
-          az ml online-deployment get-logs \
-            --name green \
-            --endpoint-name ga-deployment \
-            --lines 200 || true
+    - name: check out repo
+      uses: actions/checkout@v2
+    - name: azure login
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+    - name: setup
+      run: bash setup.sh
+      working-directory: cli
+      continue-on-error: true
+    # Commenting out as endpoint creation is only needed during the first run
+    # - name: create-endpoint
+    #   run: az ml online-endpoint create --name ga-deployment
+    - name: deployment-step
+      run: az ml online-deployment update -f deploy.yml #--all-traffic # First time it'll be az ml ... create --all-traffic
+      working-directory: jobs
