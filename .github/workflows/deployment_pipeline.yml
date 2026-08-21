@@ -8,7 +8,6 @@ on:
       - '.github/workflows/deployment_pipeline.yml'
       - 'jobs/deploy.yml'
       - 'jobs/deployment.py'
-
 jobs:
   deployment-job:
     runs-on: self-hosted
