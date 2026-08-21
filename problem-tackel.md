@@ -15,6 +15,7 @@ This document captures all technical challenges, root causes, and solutions impl
 8. [Scoring Script Model Artifact Path & Input Payload Flexibility (`deployment.py`)](#8-scoring-script-model-artifact-path--input-payload-flexibility-deploymentpy)
 9. [Data Asset Version Collision in `data_pipeline.yml`](#9-data-asset-version-collision-in-data_pipelineyml)
 10. [Missing Azure Container Registry Resource (`Microsoft.ContainerRegistry/registries/... not found`)](#10-missing-azure-container-registry-resource-microsoftcontainerregistryregistries-not-found)
+11. [Missing `azureml-inference-server-http` Package — Container Killed on Startup](#11-missing-azureml-inference-server-http-package--container-killed-on-startup)
 
 ---
 
@@ -257,5 +258,28 @@ az ml workspace delete --name mlopssecond --resource-group ashis-mlop --yes
 # 2. Recreate fresh workspace (auto-provisions linked ACR & dependencies)
 az ml workspace create --name mlopssecond --resource-group ashis-mlop --location centralindia
 ```
+
+---
+
+## 11. Missing `azureml-inference-server-http` Package — Container Killed on Startup
+
+### Symptom / Error
+```text
+A required package azureml-inference-server-http is missing. Please install azureml-inference-server-http before trying again
+Exit code 100 is not normal. Killing image.
+```
+
+### Root Cause
+`config/deployment_env.yml` did not include `azureml-inference-server-http` in its pip dependencies. This package provides the **gunicorn-based HTTP server** that Azure ML managed online endpoints use to host the scoring script (`deployment.py`). Without it, the container cannot start the web server process at all — `gunicorn/run` exits with code 100 immediately, causing Azure ML to report `ResourceNotReady` / `User container has crashed or terminated`.
+
+### Solution / Overcome
+Added `azureml-inference-server-http` as the **first pip dependency** in `config/deployment_env.yml`:
+```yaml
+  - pip:
+    - azureml-inference-server-http       # Required: Azure ML managed online endpoint HTTP server
+    - inference-schema[numpy-support]==1.3.0
+    - ...
+```
+This package is **mandatory for every Azure ML managed online endpoint** regardless of model type.
 
 

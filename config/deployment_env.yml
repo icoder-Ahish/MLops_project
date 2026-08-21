@@ -8,6 +8,7 @@ dependencies:
   - scipy=1.7.1
   - pandas==1.5.3
   - pip:
+    - azureml-inference-server-http       # Required: Azure ML managed online endpoint HTTP server
     - inference-schema[numpy-support]==1.3.0
     - xlrd==2.0.1
     - mlflow>=2.4.0
