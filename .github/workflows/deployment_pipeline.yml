@@ -8,6 +8,8 @@ on:
       - '.github/workflows/deployment_pipeline.yml'
       - 'jobs/deploy.yml'
       - 'jobs/deployment.py'
+      - 'config/deployment_env.yml'
+      - 'src/deployment_script.py'
 
 jobs:
   deployment-job:
@@ -30,29 +32,19 @@ jobs:
         working-directory: cli
         continue-on-error: true
 
-      # Endpoint creation is only required during the first run.
-      # 'create' is idempotent-safe here: if the endpoint already exists the
-      # command errors, which is fine — we continue anyway.
-      - name: Create endpoint (first run only)
-        run: az ml online-endpoint create --name ga-deployment
-        continue-on-error: true
-
-      # Try to create the deployment first (first run).
-      # If it already exists, fall back to update.
-      - name: Create deployment (first run)
-        id: create_deployment
-        run: az ml online-deployment create -f deploy.yml --all-traffic
-        working-directory: jobs
-        continue-on-error: true
-
-      - name: Update deployment (subsequent runs)
-        if: steps.create_deployment.outcome == 'failure'
-        run: az ml online-deployment update -f deploy.yml
-        working-directory: jobs
-
-      - name: Set traffic to 100%
-        if: steps.create_deployment.outcome == 'success'
+      - name: Create endpoint when needed
         run: |
-          az ml online-endpoint update \
-            --name ga-deployment \
-            --traffic "green=100"
+          if az ml online-endpoint show --name ga-deployment >/dev/null 2>&1; then
+            echo "Endpoint ga-deployment already exists."
+          else
+            az ml online-endpoint create --name ga-deployment
+          fi
+
+      - name: Create or update deployment
+        run: |
+          if az ml online-deployment show --endpoint-name ga-deployment --name green >/dev/null 2>&1; then
+            az ml online-deployment update -f deploy.yml
+          else
+            az ml online-deployment create -f deploy.yml --all-traffic
+          fi
+        working-directory: jobs

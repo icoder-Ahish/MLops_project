@@ -32,7 +32,9 @@ def trigger_deployment(
         model=model,
         environment=env,
         code_configuration=code_config,
-        instance_type="Standard_DS2_v2",
+        # Match the CI deployment configuration; DS1 is below Azure ML's
+        # recommended minimum for managed online endpoints.
+        instance_type="Standard_DS3_v2",
         instance_count=1,
     )
     # create the deployment:
