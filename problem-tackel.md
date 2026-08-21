@@ -14,6 +14,7 @@ This document captures all technical challenges, root causes, and solutions impl
 7. [CLI Flag Error (`--all-traffic` on `deployment update`)](#7-cli-flag-error---all-traffic-on-deployment-update)
 8. [Scoring Script Model Artifact Path & Input Payload Flexibility (`deployment.py`)](#8-scoring-script-model-artifact-path--input-payload-flexibility-deploymentpy)
 9. [Data Asset Version Collision in `data_pipeline.yml`](#9-data-asset-version-collision-in-data_pipelineyml)
+10. [Missing Azure Container Registry Resource (`Microsoft.ContainerRegistry/registries/... not found`)](#10-missing-azure-container-registry-resource-microsoftcontainerregistryregistries-not-found)
 
 ---
 
@@ -233,4 +234,28 @@ from datetime import datetime, date
 version = datetime.now().strftime("%Y%m%d%H%M%S")
 ```
 This guarantees unique dataset version identifiers across multiple pipeline runs on the same day, preventing version collisions during `az ml data create`.
+
+---
+
+## 10. Missing Azure Container Registry Resource (`Microsoft.ContainerRegistry/registries/... not found`)
+
+### Symptom / Error
+```text
+"message": "Unable to get image details : Unable to fetch workspace resources: The Resource 'Microsoft.ContainerRegistry/registries/d8397a9a40d544c093cc0871f20bd99a' under resource group 'ashis-mlop' was not found. For more details please go to https://aka.ms/ARMResourceNotFoundFix."
+```
+
+### Root Cause
+When an Azure Machine Learning workspace is initialized, it binds to a specific Azure Container Registry (ACR) to store environment images built for compute clusters. If that ACR instance was deleted from Azure (e.g. during subscription cleanup or trial resource deletion), the workspace's internal ARM metadata (`containerRegistry` reference) points to a non-existent resource ID, breaking environment image builds during model training or deployment.
+
+### Solution / Overcome
+Recreate the Azure ML workspace so Azure automatically provisions and binds a fresh, fully connected ACR, Storage Account, and Key Vault:
+
+```bash
+# 1. Delete broken workspace reference
+az ml workspace delete --name mlopssecond --resource-group ashis-mlop --yes
+
+# 2. Recreate fresh workspace (auto-provisions linked ACR & dependencies)
+az ml workspace create --name mlopssecond --resource-group ashis-mlop --location centralindia
+```
+
 

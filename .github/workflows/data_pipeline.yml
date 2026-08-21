@@ -10,8 +10,8 @@ on:
   # schedule:
   #   - cron: "1 1 * * 1"
 
-  # push:
-  #   branches: [data-upload-automation, main] # Can't trigger on push because github actions pushes changes
+  push:
+    branches: [data-upload-automation, main] # Can't trigger on push because github actions pushes changes
   # pull_request:
   #   branches: [ main ]
   #   paths:
