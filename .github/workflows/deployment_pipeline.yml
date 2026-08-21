@@ -31,9 +31,28 @@ jobs:
         continue-on-error: true
 
       # Endpoint creation is only required during the first run.
-      - name: Create endpoint
+      # 'create' is idempotent-safe here: if the endpoint already exists the
+      # command errors, which is fine — we continue anyway.
+      - name: Create endpoint (first run only)
         run: az ml online-endpoint create --name ga-deployment
+        continue-on-error: true
 
-      - name: Deploy model
+      # Try to create the deployment first (first run).
+      # If it already exists, fall back to update.
+      - name: Create deployment (first run)
+        id: create_deployment
+        run: az ml online-deployment create -f deploy.yml --all-traffic
+        working-directory: jobs
+        continue-on-error: true
+
+      - name: Update deployment (subsequent runs)
+        if: steps.create_deployment.outcome == 'failure'
         run: az ml online-deployment update -f deploy.yml
         working-directory: jobs
+
+      - name: Set traffic to 100%
+        if: steps.create_deployment.outcome == 'success'
+        run: |
+          az ml online-endpoint update \
+            --name ga-deployment \
+            --traffic "green=100"
