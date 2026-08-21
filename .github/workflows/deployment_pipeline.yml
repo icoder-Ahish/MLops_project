@@ -40,3 +40,11 @@ jobs:
           az ml online-deployment create -f deploy.yml --all-traffic || \
             az ml online-deployment update -f deploy.yml
           az ml online-endpoint update --name ga-deployment --traffic green=100 || true
+
+      - name: Fetch deployment logs (for debugging)
+        if: always()
+        run: |
+          az ml online-deployment get-logs \
+            --name green \
+            --endpoint-name ga-deployment \
+            --lines 200 || true
