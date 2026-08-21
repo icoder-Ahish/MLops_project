@@ -1,0 +1,50 @@
+name: Monitor deployed model
+
+on:
+  schedule:
+    # Weekdays after the Indian market close (13:00 UTC / 18:30 IST).
+    - cron: "0 13 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  monitor:
+    runs-on: self-hosted
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install monitoring dependencies
+        run: |
+          python3 -m venv .monitor-venv
+          .monitor-venv/bin/python -m pip install --upgrade pip
+          .monitor-venv/bin/python -m pip install yfinance pandas numpy PyYAML
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Configure Azure Machine Learning
+        run: bash setup.sh
+        working-directory: cli
+
+      - name: Evaluate drift and email on breach
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          ALERT_EMAIL_FROM: ${{ secrets.ALERT_EMAIL_FROM }}
+          ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
+        run: |
+          set +e
+          .monitor-venv/bin/python jobs/monitor_model.py --output monitoring-result.json
+          status=$?
+          cat monitoring-result.json >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+          if [ "$status" -eq 2 ]; then
+            echo "Drift alert sent; marking this workflow run as failed for visibility."
+          fi
+          exit "$status"

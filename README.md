@@ -20,7 +20,7 @@ This project is still in development. :
 Improvement items:
 
 1. Pytests during CI
-2. Implement option of monitoring data drift
+2. Model monitoring and alerting (implemented via `model_monitoring.yml`)
 3. Model profiling
 4. Infrastructure performance
 5. Model performance assessment on data slices
@@ -61,5 +61,21 @@ The cron job is `.github/workflows/deployment_pipeline.yml`
 - For the successive training runs, the new model would be deployed to the existing online endpoint
 
 Associated files: `jobs/deploy.yml`, `jobs/deployment.py`
+
+# Model monitoring and alerts
+
+`.github/workflows/model_monitoring.yml` runs on weekdays after market close or
+manually. It compares endpoint predictions against delayed, known stock closes
+(MAPE) and compares recent Close prices to the training reference data (PSI).
+An alert is sent only when `max_mape` or `max_psi` in
+`config/model_monitoring.yml` is exceeded.
+
+See [MONITORING.md](MONITORING.md) for the exact MAPE and PSI calculations,
+threshold behavior, alert flow, and response procedure.
+
+Configure these repository secrets before enabling the scheduled workflow:
+`SMTP_HOST`, `SMTP_PORT` (normally `587`), `SMTP_USERNAME`, `SMTP_PASSWORD`,
+`ALERT_EMAIL_FROM`, and `ALERT_EMAIL_TO`. A threshold breach without valid SMTP
+configuration fails the workflow so an alert is never silently lost.
 
 Currently all the cron jobs have been paused and the endpoint has been deleted to avoid costs.

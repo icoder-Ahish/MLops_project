@@ -1,0 +1,12 @@
+# These values are deliberately conservative starting points. Adjust them from
+# observed production behaviour after several successful monitoring runs.
+ticker: WIPRO.NS
+endpoint_name: ga-deployment
+reference_data: data/WIPRO.NS.csv
+lookback_days: 5
+# The current training target is two trading observations after the final input
+# close. Change to 1 if/when the training target is changed to next-close.
+prediction_horizon: 2
+evaluation_windows: 20
+max_mape: 0.10
+max_psi: 0.20
