@@ -34,14 +34,55 @@ jobs:
             az ml online-endpoint create --name ga-deployment
 
       - name: Register deployment environment (build & cache image)
+        id: envsetup
         run: |
-          az ml environment create \
-            --name stock-deploy-env \
-            --image mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest \
-            --conda-file config/deployment_env.yml \
-            --version ${{ github.run_number }} \
-            2>/dev/null || \
-          echo "Environment version already exists, continuing with latest."
+          # Derive a stable version from the file content hash.
+          # Same conda file = same hash = image already in ACR = no rebuild.
+          ENV_VERSION=$(sha256sum config/deployment_env.yml | cut -c1-12)
+          echo "env_version=$ENV_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Using environment version: $ENV_VERSION"
+
+          if az ml environment show --name stock-deploy-env --version "$ENV_VERSION" >/dev/null 2>&1; then
+            echo "Environment stock-deploy-env:$ENV_VERSION already exists — skipping build."
+          else
+            echo "Creating new environment version $ENV_VERSION (image build will start)..."
+            az ml environment create \
+              --name stock-deploy-env \
+              --image mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest \
+              --conda-file config/deployment_env.yml \
+              --version "$ENV_VERSION"
+
+            # Poll until the ACR image build finishes (max 40 min).
+            # az ml environment create is async — it registers metadata and
+            # triggers the build in the background then returns immediately.
+            echo "Polling for image build completion (max 40 min)..."
+            for attempt in $(seq 1 80); do
+              echo "  Attempt $attempt/80 — $(date -u '+%H:%M:%S UTC')"
+              BUILD_OUT=$(az ml environment show \
+                --name stock-deploy-env \
+                --version "$ENV_VERSION" \
+                --output json 2>/dev/null || echo "{}")
+
+              # Azure ML sets image to the full ACR URI (contains .azurecr.io)
+              # once the image has been successfully pushed to the registry.
+              if echo "$BUILD_OUT" | grep -q "azurecr.io"; then
+                echo "  Image build succeeded!"
+                break
+              fi
+
+              if [ "$attempt" -eq 80 ]; then
+                echo "  Timed out waiting for image build."
+                exit 1
+              fi
+              sleep 30
+            done
+          fi
+
+          # Write the resolved version into deploy.yml so it uses the exact
+          # pre-built version rather than @latest which could resolve to a
+          # version whose image is still building.
+          sed -i "s|environment: azureml:stock-deploy-env@latest|environment: azureml:stock-deploy-env:$ENV_VERSION|g" jobs/deploy.yml
+          echo "deploy.yml updated to use environment stock-deploy-env:$ENV_VERSION"
 
       - name: Deploy model to endpoint
         working-directory: jobs
