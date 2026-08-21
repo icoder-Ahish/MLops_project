@@ -5,9 +5,7 @@ model: azureml:GA_model@latest
 code_configuration:
   code: ../jobs
   scoring_script: deployment.py
-environment:
-  image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
-  conda_file: ../config/deployment_env.yml
+environment: azureml:stock-deploy-env@latest
 instance_type: Standard_D2a_v4
 instance_count: 1
 liveness_probe:

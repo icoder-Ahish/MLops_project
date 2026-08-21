@@ -33,6 +33,16 @@ jobs:
           az ml online-endpoint show --name ga-deployment >/dev/null 2>&1 || \
             az ml online-endpoint create --name ga-deployment
 
+      - name: Register deployment environment (build & cache image)
+        run: |
+          az ml environment create \
+            --name stock-deploy-env \
+            --image mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest \
+            --conda-file config/deployment_env.yml \
+            --version ${{ github.run_number }} \
+            2>/dev/null || \
+          echo "Environment version already exists, continuing with latest."
+
       - name: Deploy model to endpoint
         working-directory: jobs
         run: |
