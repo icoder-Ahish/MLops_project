@@ -1,7 +1,7 @@
 name: Train and register model
 
 env:
-  job_name: ga-run-18
+  job_name: ga-run-19
   compute_name: computer456
   compute_size: STANDARD_D2d_v5        
   registered_model_name: GA_model
@@ -95,7 +95,7 @@ jobs:
         run: |
           az ml model create \
             --name "${{ env.registered_model_name }}" \
-            --version 18 \
+            --version 19 \
             --path "azureml://jobs/${{ needs.train-job.outputs.job_name }}/outputs/artifacts/paths/outputs/" \
             --type custom_model
 
